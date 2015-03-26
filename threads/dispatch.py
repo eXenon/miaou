@@ -15,7 +15,7 @@ def execute(cmd):
   print("Executing",cmd)
   os.system(cmd)
 
-def dispatch(cmd):
+def dispatch(cmd, threads=50):
   # This is the command called from MONICA, with the
   # exact command typed in by the user after "monica-dispatch"
   
@@ -69,12 +69,12 @@ def dispatch(cmd):
   print("First few commands :")
   for i in range(min(5, len(finalecmds))):
     print(finalecmds[i])
-  if not confirm("Launch it ?"):
+  if not confirm.query_yes_no("Launch it ?"):
     print("Aborted.")
     return False
 
   # Launch it all for good :
-  pool = Pool(processes=1)
+  pool = Pool(processes=threads)
   pool.map(execute, finalecmds)
 
   # Close all file handlers
