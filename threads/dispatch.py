@@ -15,7 +15,7 @@ def execute(cmd):
   print("Executing",cmd)
   os.system(cmd)
 
-def dispatch(cmd, threads=50):
+def dispatch(cmd, threads=50, product=True):
   # This is the command called from MONICA, with the
   # exact command typed in by the user after "monica-dispatch"
   
@@ -30,8 +30,11 @@ def dispatch(cmd, threads=50):
   #  {{range:<start>:<stop>:<step>}}
   #   -> will return every integer from start to stop with interval step
   # If there are several builders :
-  #  Every combination of values will be called ! This can make a lot of 
-  #  combinations really quickly ! AVOID !
+  #   -> If product:
+  #        Every combination of values will be called ! This can make a lot of
+  #        combinations really quickly ! AVOID !
+  #   -> If not product :
+  #        Create a zip of all the lines.
 
   # Extract builders :
   builders = []
@@ -50,7 +53,10 @@ def dispatch(cmd, threads=50):
       builder_iterators.append(build_file_iterator(args[0]))
 
   # Build the product of the builder iterators
-  builder_product = itertools.product(*tuple(builder_iterators))
+  if product:
+    builder_product = itertools.product(*tuple(builder_iterators))
+  else:
+    builder_product = zip(*tuple(builder_iterators))
  
   # Split the string and rebuild it with arguments :
   splitted_cmd = re.split("\{\{.*?\}\}", cmd)

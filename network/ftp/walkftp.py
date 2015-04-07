@@ -32,11 +32,14 @@ def ftp_walk(ip, user="anonymous", pwd="", port=21):
   except ftplib.error_perm:
     print("Access denied.")
     return False
-  except socket.error:
-    print("FTP seems down.")
-    return False
+  #except socket.error:
+  #  print("FTP seems down.")
+  #  return False
   return True
  
 
 if __name__ == "__main__":
-  ftp_walk(sys.argv[1]) 
+  if len(sys.argv) == 2:
+    ftp_walk(sys.argv[1]) 
+  elif len(sys.argv) == 3:
+    ftp_walk(sys.argv[1], port=int(sys.argv[2]))
