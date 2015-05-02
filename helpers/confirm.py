@@ -1,6 +1,5 @@
-#
-#  Helper.py
-#  Just a generic module with useful functions
+# helpers/confirm.py
+# Allows to ask the user in CLI a simple Yes/No question.
 #
 
 import sys
