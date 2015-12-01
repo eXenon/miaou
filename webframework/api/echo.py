@@ -8,4 +8,4 @@ arguments = { 'hello': { 'required': True },
 @asyncio.coroutine
 def process(args):
   print(args)
-  return { 'body': str(args).encode() }
+  return { 'json': args }
