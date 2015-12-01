@@ -35,7 +35,7 @@ def handle(request):
   except ImportError:
     return web.Response(headers={"Access-Control-Allow-Origin":origin}, status=404, text="Page does not exist.")
   except Exception as e:
-    s = str(e) if verbose_errors else "No verbose errors."
+    s = str(e.args) if verbose_errors else "No verbose errors."
     return web.Response(headers={"Access-Control-Allow-Origin":origin}, status=500, text="Error while querying data.\n" + s)
 
 @asyncio.coroutine
