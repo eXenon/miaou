@@ -9,6 +9,7 @@ host = "0.0.0.0"
 port = 9011
 origin = "*"
 verbose_errors = True
+verbose_logging = True
 
 @asyncio.coroutine
 def handle(request):
@@ -19,32 +20,34 @@ def handle(request):
     s += request.match_info['module'] + "." 
   if 'action' in request.match_info:
     s += request.match_info['action']
+  if verbose_logging:
+    print("Incoming request - " + str(request.raw_path))
   try:
     module = importlib.import_module(s)
     arguments = url.parse(request.GET, module.arguments)
     response = yield from module.process(arguments)
-
-    # Build response
-    final_response = {}
-    final_headers = response.get('headers', {})
-    final_headers["Access-Control-Allow-Origin"] = origin 
-    final_response['headers'] = final_headers
-    final_response['status'] = response.get('status', 200)
     if 'json' in response:
       # Dump to json if the module wants to return json
-      final_response["text"] = json.dumps(response['json'])
-      final_content = "application/json"
+      return respond(headers=response.get('headedrs', {}),
+                    status=response.get('status', 200),
+                    text=json.dumps(response.get("json", "")),
+                    content_type="application/json")
     else:
-      # Else, return as raw output
-      final_response["text"] = response.get("text", "")
-      final_content = "text/plain"
-    # And send it
-    return web.Response(headers=final_response['headers'], status=final_response['status'], text=final_response['text'], content_type = final_content)
+      return respond(headers=response.get('headedrs', {}),
+                    status=response.get('status', 200),
+                    text=response.get("text", ""))
   except ImportError:
-    return web.Response(headers={"Access-Control-Allow-Origin":origin}, status=404, text="Page does not exist.")
+    return respond(status=404, text="Page does not exist")
   except Exception as e:
     s = str(e.args) if verbose_errors else "No verbose errors."
-    return web.Response(headers={"Access-Control-Allow-Origin":origin}, status=500, text="Error while querying data.\n" + s)
+    return respond(status=500, text="Error while querying data.\n" + s)
+
+def respond(headers={}, status=200, text="", content_type="text/plain"):
+  headers['Access-Control-Allow-Origin'] = origin
+  if verbose_logging:
+    print("Response - Headers:",headers, "Status:", status, "Content-type:",content_type)
+    print("Text:", text)
+  return web.Response(headers=headers, status=status, text=text, content_type=content_type)
 
 @asyncio.coroutine
 def init(loop, host='localhost', port=9011):
