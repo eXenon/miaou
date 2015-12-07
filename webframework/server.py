@@ -23,7 +23,7 @@ def handle(request):
     s += p + "." 
   if 'action' in request.match_info:
     p = re.sub('[^0-9a-zA-Z]+', '', request.match_info['action'])
-    s += p]
+    s += p
   if verbose_logging:
     print("Incoming request - " + str(request.raw_path))
   try:
