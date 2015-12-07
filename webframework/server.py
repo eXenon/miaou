@@ -1,8 +1,9 @@
 #!/usr/bin/python
 import importlib
 import asyncio
-import url
 import json
+import url
+import re
 from aiohttp import web
 
 host = "0.0.0.0"
@@ -15,11 +16,14 @@ verbose_logging = True
 def handle(request):
   s = "api."
   if 'project' in request.match_info:
-    s += request.match_info['project'] + "."
+    p = re.sub('[^0-9a-zA-Z]+', '', request.match_info['project'])
+    s += p + "."
   if 'module' in request.match_info:
-    s += request.match_info['module'] + "." 
+    p = re.sub('[^0-9a-zA-Z]+', '', request.match_info['module'])
+    s += p + "." 
   if 'action' in request.match_info:
-    s += request.match_info['action']
+    p = re.sub('[^0-9a-zA-Z]+', '', request.match_info['action'])
+    s += p]
   if verbose_logging:
     print("Incoming request - " + str(request.raw_path))
   try:
