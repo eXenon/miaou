@@ -1,9 +1,18 @@
 #!/usr/bin/python
+"""
+  A aiohttp based webserver with a few extended functionalities :
+  - automatic dispatch of a URL to an imported python file, using default
+    routes referring to the corresponding python module.
+  - url.py handles argument parsing with requirement given by the modules.
+  - session.py handles basic sessions using Redis as a server-side storage.
+"""
+
 import importlib
 import asyncio
 import json
 import url
 import re
+import sessions
 from aiohttp import web
 
 host = "0.0.0.0"
@@ -14,6 +23,8 @@ verbose_logging = True
 
 @asyncio.coroutine
 def handle(request):
+
+  # URL Parsing
   s = "api."
   if 'project' in request.match_info:
     p = re.sub('[^0-9a-zA-Z]+', '', request.match_info['project'])
@@ -26,18 +37,40 @@ def handle(request):
     s += p
   if verbose_logging:
     print("Incoming request - " + str(request.raw_path))
+
+  # Session loading
+  if "cookie" in request.headers and  "AIOHTTP_SESSION" in request.headers["cookie"]:
+    cookies = request.headers.getall("cookie")[0]
+    aiocookie = re.search("AIOHTTP_SESSION=([0-9a-z]{32})", cookies)
+    if aiocookie:
+      session = sessions.Session(aiocookie.group(1))
+      if verbose_logging:
+        print("Session ID - " + session.id)
+    else:
+      session = sessions.Session() 
+      if verbose_logging:
+        print("New Session with ID - " + session.id)
+  else: 
+    session = sessions.Session() 
+    if verbose_logging:
+      print("New Session with ID - " + session.id)
+
+  # Response building
   try:
     module = importlib.import_module(s)
     arguments = url.parse(request.GET, module.arguments)
-    response = yield from module.process(arguments)
+    response = yield from module.process(session, arguments)
+    headers = response.get('headers', {})
+    if session.is_new_session:
+      headers.update({"Set-Cookie": "AIOHTTP_SESSION=" + session.id})
     if 'json' in response:
       # Dump to json if the module wants to return json
-      return respond(headers=response.get('headedrs', {}),
+      return respond(headers=headers,
                     status=response.get('status', 200),
                     text=json.dumps(response.get("json", "")),
                     content_type="application/json")
     else:
-      return respond(headers=response.get('headedrs', {}),
+      return respond(headers=headers,
                     status=response.get('status', 200),
                     text=response.get("text", ""))
   except ImportError:

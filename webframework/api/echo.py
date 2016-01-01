@@ -6,6 +6,5 @@ arguments = { 'hello': { 'required': True },
             }
 
 @asyncio.coroutine
-def process(args):
-  print(args)
+def process(session, args):
   return { 'json': args }

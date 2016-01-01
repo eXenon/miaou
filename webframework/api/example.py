@@ -9,5 +9,5 @@ import asyncio
 arguments = {}
 
 @asyncio.coroutine
-def process(args):
+def process(session, args):
   return {}

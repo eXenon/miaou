@@ -1,6 +1,13 @@
 """
   Rudimentary argument parser to ensure that the called modules have expected arguments
-  at their disposal
+  at their disposal.
+
+  Modules should expose the 'arguments' dictionnary with following structure :
+  { <argument name> : { "required": <bool>,      -- is this argument optional ?
+                        "parser": <function>     -- a function that will be applied to the argument [optional]
+                        "default": <any>         -- default value of the argument [optional]
+                      }
+  }
 """
 
 def parse(urlargs, requirements):
