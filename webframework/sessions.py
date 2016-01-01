@@ -84,6 +84,9 @@ class Session():
       self._redis.set(self._id, pickle.dumps(self._values))
     self._redis.set(uuid, pickle.dumps(value))
 
+  def __contains__(self, k):
+    return k in self._values
+
   def keys(self):
     return self._values.keys()
 
