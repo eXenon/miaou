@@ -109,7 +109,13 @@ class Session():
           self._values.pop(k)
           self._redis.set(self._id, pickle.dumps(self._values))
           del self._redis[k]
-      
+
+  def expire(self):
+    # Let the session expire immediately
+    self._values["created_at"] = 0
+    self._values["loaded_at"] = 0
+    self._redis.set(self._id, pickle.dumps(self._values))
+    
 
 
   # Global variables for Session
@@ -130,5 +136,5 @@ class Session():
     if values:
       values = pickle.loads(values)
       for k in values:
-        del r[k]
+        del r[values[k]]
       del r[uuid]
