@@ -43,7 +43,7 @@ class Session():
       # Check for expiration, which occurs after 24h or after 1h idleness
       if time.time() - self._values["created_at"] > validtime or time.time() - self._values["loaded_at"] > idletime:
         # Delete current session
-        Session.delete(self._id)
+        Session.delete(self._redis, self._id)
         self._id = Session.generate_uuid(self._redis)
         self._values = {"created_at": time.time(), "loaded_at":time.time()}
         self._new_session = True
